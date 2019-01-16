@@ -25,13 +25,14 @@ def parse_config():
     parser.add_argument("--act_loss_weight", type=float, default=0.001)
     parser.add_argument("--noam", action="store_true")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--ten_k", action="store_true")
     return parser.parse_args()
 
 
-def get_babi_vocab(task):
+def get_babi_vocab(config):
     text = BABI20Field(70)
-    train, val, test = datasets.BABI20.splits(text, root='.data', task=task, joint=False,
-                                         tenK=True, only_supporting=False)
+    train, val, test = datasets.BABI20.splits(text, root='.data', task=config.task, joint=False,
+                                         tenK=config.ten_k, only_supporting=False)
     text.build_vocab(train)
     vocab_len = len(text.vocab.freqs) 
     # print("VOCAB LEN:",vocab_len )
@@ -55,13 +56,13 @@ def evaluate(model, criterion, loader):
     return acc,loss
 
 def main(config):
-    vocab_len = get_babi_vocab(config.task)
+    vocab_len = get_babi_vocab(config)
     train_iter, val_iter, test_iter = datasets.BABI20.iters(batch_size=config.batch_size, 
                                                             root='.data', 
                                                             memory_size=70, 
                                                             task=config.task, 
                                                             joint=False,
-                                                            tenK=False, 
+                                                            tenK=config.ten_k,
                                                             only_supporting=False, 
                                                             sort=False, 
                                                             shuffle=True)
